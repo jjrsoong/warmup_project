@@ -27,14 +27,14 @@ class SquareDriver(object):
             # Move forward along one side of square
             while True:
                 time_elapsed = time.time() - start_time
-                if time_elapsed >= 5:
+                if time_elapsed >= 5.05:
                     break
                 else:
                     self.leader.publish(forward)
             # Turn robot 90 degrees
             while True:
                 time_elapsed = time.time() - start_time-5
-                if time_elapsed >= 3.03:
+                if time_elapsed >= 3.11:
                     break
                 else:
                     self.leader.publish(turn)
