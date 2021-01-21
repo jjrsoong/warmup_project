@@ -27,9 +27,15 @@ class WallFollower(object):
         #Boolean variable, set to True is in the middle of a turn
         self.turning = False
 
+        #Boolean variable, set to True is bot has never turned before
+        self.first = True
+
     def process_scan(self, data):
+        if data.ranges[0] >= distance and self.first:
+            self.instruction.linear.x = 0.3
+            self.instruction.angular.z = radians(0)
         if data.ranges[0] >= distance and not self.turning:
-            self.instruction.linear.x = 0.5
+            self.instruction.linear.x = 0.3
             self.instruction.angular.z = radians(0)
         #elif data.ranges[0] >= distance and data.ranges[45] >= distance:
         #    self.instruction.linear.x = 0
@@ -40,15 +46,20 @@ class WallFollower(object):
 
         # Near a wall, need to turn somehow
         else:
+            self.first = False
             # Has turned enough, can resume forward motion
-            if data.ranges[0] >= 1:
-                self.turning = False
-            else:
-                self.turning = True
-
+            error = data.ranges[269] - distance/2
+            print(error)
+            prop_control = 1
+            self.turning = True
             self.instruction.linear.x = 0
-            self.instruction.angular.z = radians(30)
+            self.instruction.angular.z = error * prop_control
 
+            if data.ranges[269] < distance and data.ranges[0] > distance:
+                self.turning = False
+
+
+        print(data.ranges[0], data.ranges[89], data.ranges[269])
         self.navigator.publish(self.instruction)
 
     def run(self):
