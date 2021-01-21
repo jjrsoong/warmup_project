@@ -11,7 +11,7 @@ from geometry_msgs.msg import Vector3
 from math import radians
 
 # How close we will get to wall.
-distance = 0.4
+distance = 0.5
 
 class WallFollower(object):
 
@@ -20,10 +20,6 @@ class WallFollower(object):
         rospy.Subscriber("/scan", LaserScan, self.process_scan)
         self.navigator = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
 
-        lin = Vector3()
-        ang = Vector3()
-        self.instruction = Twist(linear=lin,angular=ang)
-
         #Boolean variable, set to True is in the middle of a turn
         self.turning = False
 
@@ -31,36 +27,70 @@ class WallFollower(object):
         self.first = True
 
     def process_scan(self, data):
-        if data.ranges[0] >= distance and self.first:
-            self.instruction.linear.x = 0.3
-            self.instruction.angular.z = radians(0)
-        if data.ranges[0] >= distance and not self.turning:
-            self.instruction.linear.x = 0.3
-            self.instruction.angular.z = radians(0)
-        #elif data.ranges[0] >= distance and data.ranges[45] >= distance:
-        #    self.instruction.linear.x = 0
-        #    self.instruction.angular.z = radians(-30)
-        #elif data.ranges[0] >= distance and data.ranges[315] >= distance:
-        #    self.instruction.linear.x = 0
-        #    self.instruction.angular.z = radians(330)
+        error = data.ranges[269] - distance
+        prop_control = 1
 
-        # Near a wall, need to turn somehow
-        else:
-            self.first = False
-            # Has turned enough, can resume forward motion
-            error = data.ranges[269] - distance/2
-            print(error)
-            prop_control = 1
-            self.turning = True
-            self.instruction.linear.x = 0
-            self.instruction.angular.z = error * prop_control
+        lin = Vector3()
+        ang = Vector3()
+        instruction = Twist(linear=lin,angular=ang)
 
-            if data.ranges[269] < distance and data.ranges[0] > distance:
-                self.turning = False
+        front = min(data.ranges[344:359])
+        left = min(data.ranges[269:314])
+        frontLeft = min(data.ranges[315:345])
 
 
-        print(data.ranges[0], data.ranges[89], data.ranges[269])
-        self.navigator.publish(self.instruction)
+        if front >= distance and frontLeft >= distance and left >= distance:# and self.first:
+            print('forward')
+            instruction.linear.x = 0.3
+            instruction.angular.z = radians(0)
+        elif front < distance and frontLeft < distance and left < distance:
+            print('fast turn')
+            instruction.linear.x = 0
+            instruction.angular.z = radians(30)
+        elif front < distance and frontLeft < distance and left >= distance:
+            instruction.linear.x = 0.1
+            instruction.angular.z = radians(15)
+        elif front >= distance and frontLeft >= distance and left < distance:
+            print('slow turn 1 ')
+            instruction.linear.x = 0.1
+            instruction.angular.z = radians(15)
+        elif front >= distance and frontLeft < distance and left < distance:
+            print('slow turn 2')
+            instruction.linear.x = 0.1
+            instruction.angular.z = radians(15)
+        # elif left
+
+        # elif data.ranges[0] >= distance and not self.turning:
+        #     print('out of first turn')
+        #     instruction.linear.x = 0.3
+        #     #self.instruction.angular.z = radians(0)
+        #
+        #     # moving forward but still getting closer to the wall
+        #     #if data.ranges[269] < distance:
+        #     instruction.angular.z = error * prop_control
+        #     print(error)
+        # #elif data.ranges[0] >= distance and data.ranges[45] >= distance:
+        # #    self.instruction.linear.x = 0
+        # #    self.instruction.angular.z = radians(-30)
+        # #elif data.ranges[0] >= distance and data.ranges[315] >= distance:
+        # #    self.instruction.linear.x = 0
+        # #    self.instruction.angular.z = radians(330)
+        #
+        # # Near a wall, need to turn somehow
+        # else:
+        #     self.first = False
+        #     self.turning = True
+        #     instruction.linear.x = 0
+        #     instruction.angular.z = error * prop_control
+        #     print(error)
+        #
+        #     if data.ranges[269] < distance and data.ranges[0] > distance:
+        #         self.turning = False
+        #         print('stop turning')
+
+
+        print(front, frontLeft, left)
+        self.navigator.publish(instruction)
 
     def run(self):
         rospy.spin()
