@@ -29,13 +29,13 @@ class WallFollower(object):
         ang = Vector3()
         instruction = Twist(linear=lin,angular=ang)
 
-        #LIDAR ranges. Bot is designed to follow a wall on its left side
+        #LIDAR ranges. Bot is designed to follow a wall on its right side
         front = min(min(data.ranges[344:359]), min(data.ranges[0:14]))
-        left = min(data.ranges[269:314])
-        frontLeft = min(data.ranges[315:345])
-        right = data.ranges[89]
+        right = min(data.ranges[269:314])
+        frontRight = min(data.ranges[315:345])
+        left = data.ranges[89]
 
-        if front >= distance and frontLeft >= distance and left >= distance:
+        if front >= distance and frontRight >= distance and right >= distance:
             instruction.linear.x = 0.3
             # Just entered the world, go straight ahead
             if self.first:
@@ -51,12 +51,12 @@ class WallFollower(object):
             print('obs in front')
             instruction.linear.x = 0
             instruction.angular.z = radians(20)
-        # No obstacle in front but too close to left hand side -- slow adjustment
+        # No obstacle in front but too close to right hand side -- slow adjustment
         # using proportional control
-        elif front >= distance and frontLeft >= distance and left < distance:
+        elif front >= distance and frontRight >= distance and right < distance:
             self.first = False
             print('slow turn 1 ')
-            error_rate = (distance - frontLeft) * 125
+            error_rate = (distance - frontRight) * 125
             prop_control = 1
             instruction.angular.z = radians(error_rate * prop_control)
 
@@ -67,8 +67,8 @@ class WallFollower(object):
             else:
                 instruction.linear.x = 0.1
 
-        # Obstacle in front left -- slow adjustment
-        elif front >= distance and frontLeft < distance and left < distance:
+        # Obstacle in front right -- slow adjustment
+        elif front >= distance and frontRight < distance and right < distance:
             self.first = False
             print('slow turn 2')
             instruction.linear.x = 0.2
@@ -76,34 +76,34 @@ class WallFollower(object):
 
     # -- BELOW HAS NEVER BEEN TESTED --
         # Theoretically should never occur. This means that there is a wall
-        # at the front left **only**. As a failsafe, start turning so the wall
-        # is directly left of the bot
-        elif front >= distance and frontLeft < distance and left >= distance:
+        # at the front right **only**. As a failsafe, start turning so the wall
+        # is directly right of the bot
+        elif front >= distance and frontRight < distance and right >= distance:
             self.first = False
             print('Houston, we have a problem')
             instruction.linear.x = 0
             instruction.angular.z = radians(10)
 
-        # There is a wall on the right hand side
-        if right < distance:
-            print('Houston, there is an asteroid to the right')
-            # There is no wall on the left; since the bot is optimized to
-            # follow walls on its left, spin the bot around
-            if left >= 500:
+        # There is a wall on the left hand side
+        if left < distance:
+            print('Houston, there is an asteroid to the left')
+            # There is no wall on the right; since the bot is optimized to
+            # follow walls on its right, spin the bot around
+            if right >= 500:
                 instruction.angular.z = radians(-90)
-            # Right hand side wall is closer than left hand side wall
-            elif left >= distance:
+            # Right hand side wall is closer than right hand side wall
+            elif right >= distance:
                 instruction.angular.z = radians(-20)
             # Walls on both sides are close by (ie in a hall)
             else:
                 instruction.linear.x = 0.05
-                # Right wall marginally closer than left
-                if right < left:
+                # Right wall marginally closer than right
+                if left < right:
                     instruction.angular.z = radians(-1)
                 else:
                     instruction.angular.z = radians(1)
 
-        print(front, frontLeft, left)
+        print(front, frontRight, right)
         self.navigator.publish(instruction)
 
     def run(self):
