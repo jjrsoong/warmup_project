@@ -31,3 +31,17 @@ There are three different "switches" to control linear speed. If the bot is far 
 
 
 ![Person Follower Gif](person_follower.gif)
+
+**Challenges**
+This is one of the first times I have ever done object-oriented programming so getting used to this style took some time. Conceptually, I felt like I understand how object-oriented programming works but there were a lot of small implementation mistakes I made initially. Using stackoverflow and other online forums for beginners was a big help in debugging the small mistakes I made.
+
+With regards to these exercises, I initially had some trouble understanding the output from LaserScan. In particular, I could not, for the longest time, figure out if the angles outputted from the LIDAR went clockwise or counterclockwise. I was able to overcome this will a lot of trial and error with the robot.
+
+**Future Work**
+While my robot is functional, there are still instances when it exhibits minor "hiccups." For example, in wall follower, after turning a corner, my bot sometimes overcompensates before adjusting to follow the wall at a constant distance. If I had more time, tweaking the code to remove the bot's tendency to overcompensate would be a priority. I think it would also be prudent to add code that would enable my bot to navigate an "open" corner (per Slack, this was not something we needed to account for).
+
+**Takeaways**
+1) Remain open-minded. I think computer science majors do this less often than other students but we still sometimes silo ourselves into a particular strategy or method. It is important to explore all strategies so that if you initial ideas do not work you can switch to other ideas. This seems very important in robotics given all the sensors and the noise that bots have to deal with.
+
+2) Baby steps are best. I find it helpful to program in small steps. Instead of writing the entire program out before running the bot in Gazebo, it is useful to code a particular function or edge case and then test it out in Gazebo. To this end, the use of print statements -- especially for sensor outputs (ie. I used LIDAR distances at 0, 90, and 270 degrees) -- is helpful for understanding how the bot is thinking through its environment. Print statements made me realize that Gazebo adds in noise and, as such, my code needed to account for that.
+
