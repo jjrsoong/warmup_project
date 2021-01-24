@@ -13,6 +13,14 @@ This program uses a SquareDriver class. The run() definition keeps the program r
 ![Drive in a Square Gif](drive_square.gif)
 
 **Wall Follower**
+The bot divides the LIDAR scan into several distinct ranges and uses the minimum distance from each range to determine its linear and angular velocity. Broadly speaking, if the front of the bot is free of walls it will move forward (the speed varies depending on the wall's distance from other sides of the bot).
+
+If there is a wall in front of the bot (defined as the 45 degree arc from the bot's direct front), it will execute a turn (turning speed varies depending on the walls angle from the bot's front).
+
+Finally, as a failsafe, if the bot deviates too far from the way it will execute to turn to take it back closer to the wall.
+
+
+![Wall Follwer Gif](wall_follower.gif)
 
 **Person Follower**
 Similar to Wall Follower, Person Follower divides the bot's 360 degree LIDAR scans into 9 distinct regions. There are four regions on each side of the bot with the ninth region corresponding to the 30 degree area directly in front of the bot. Each region triggers a different angular velocity, and code was written in such a way so that instructions from regions behind the bot are overwritten by instructions coming from regions closer to the front of the bot.

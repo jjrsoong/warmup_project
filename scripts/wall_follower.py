@@ -39,23 +39,19 @@ class WallFollower(object):
             instruction.linear.x = 0.3
             # Just entered the world, go straight ahead
             if self.first:
-                print('just starting')
                 instruction.angular.z = radians(0)
             # Right direction, but deviating from wall -- make an adjustment
             else:
-                print('forward + adjust')
                 instruction.angular.z = radians(-50)
         # Obstacle in front, need to stop moving forward and turn
         elif front < distance:
             self.first = False
-            print('obs in front')
             instruction.linear.x = 0
             instruction.angular.z = radians(20)
         # No obstacle in front but too close to right hand side -- slow adjustment
         # using proportional control
         elif front >= distance and frontRight >= distance and right < distance:
             self.first = False
-            print('slow turn 1 ')
             error_rate = (distance - frontRight) * 125
             prop_control = 1
             instruction.angular.z = radians(error_rate * prop_control)
@@ -70,12 +66,10 @@ class WallFollower(object):
         # Obstacle in front right -- slow adjustment
         elif front >= distance and frontRight < distance and right < distance:
             self.first = False
-            print('slow turn 2')
             instruction.linear.x = 0.2
             instruction.angular.z = radians(10)
 
-    # -- BELOW HAS NEVER BEEN TESTED --
-        # Theoretically should never occur. This means that there is a wall
+        # This means that there is a wall
         # at the front right **only**. As a failsafe, start turning so the wall
         # is directly right of the bot
         elif front >= distance and frontRight < distance and right >= distance:
@@ -103,7 +97,6 @@ class WallFollower(object):
                 else:
                     instruction.angular.z = radians(1)
 
-        print(front, frontRight, right)
         self.navigator.publish(instruction)
 
     def run(self):
