@@ -11,3 +11,15 @@ Then, I simply pieced the forward() and turn() commands together via an infinite
 This program uses a SquareDriver class. The run() definition keeps the program running, while the initization, the turn(), and the forward() commands are executed in the __init__ def via the time-based approach described above.
 
 ![Drive in a Square Gif](drive_square.gif)
+
+**Wall Follower**
+
+**Person Follower**
+Similar to Wall Follower, Person Follower divides the bot's 360 degree LIDAR scans into 9 distinct regions. There are four regions on each side of the bot with the ninth region corresponding to the 30 degree area directly in front of the bot. Each region triggers a different angular velocity, and code was written in such a way so that instructions from regions behind the bot are overwritten by instructions coming from regions closer to the front of the bot.
+
+In the edge case where the person is directly behind the bot, the bot will prefer to turn to its right to reach the person.
+
+There are three different "switches" to control linear speed. If the bot is far from the person, it will move quickly (currently 1m/sec). If it moves past a deceleration distance, it will slow down to 0.2 m/sec. Finally, if it overshoots its stopping distance from the person, it will use proportional control to back upto the correct stopping distance.
+
+
+![Person Follower Gif](person_follower.gif)

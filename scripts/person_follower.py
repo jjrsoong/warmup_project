@@ -29,6 +29,7 @@ class PersonFollower(object):
         ang = Vector3()
         instruction = Twist(linear=lin,angular=ang)
 
+        # Split 360 degree LIDAR scan into 9 distinct areas
         front = min(min(data.ranges[344:359]), min(data.ranges[0:14]))
         frontLeft = min(data.ranges[15:44])
         frontCenterLeft = min(data.ranges[45:89])
@@ -39,6 +40,10 @@ class PersonFollower(object):
         frontCenterRight = min(data.ranges[270:314])
         frontRight = min(data.ranges[315:345])
 
+        # The below if statements dictate how the bot should turn (both direction
+        # and magnitude) when the person is in each LIDAR zone. Using all if statements
+        # so that the zones toward the front -- which correspond to later if statements
+        # -- will override turning directions from zones behind the bot
         # All things being equal, the bot will prefer to turn to its right
         # to reach the person. (ie. if person is directly behind, will turn right)
         if backLeft != inf:
@@ -61,53 +66,29 @@ class PersonFollower(object):
         if frontRight != inf:
             instruction.angular.z = radians(-20)
 
-        # if front < frontLeft:
-        #     instruction.angular.z = radians(5)
-        #     print("front<others 1")
-        # if front < frontRight:
-        #     instruction.angular.z = radians(-5)
-        #     print("front<others 2")
-
-
-
         # If person is somewhere in front of robot, can move forward
         if front != inf:
             error_rate = front - stop_point
             prop_control = 1
 
-            # if front > decel_point:
-            #     instruction.linear.x = error_rate * prop_control
-
-            # elif front < stop_point:
-            #     instruction.linear.x = -0.2
-            # Goal condition: should stop moving forward or turning
+            # Goal condition: if here, bot should stop moving forward or turning
             if front <= stop_point * 1.05 and front >= stop_point * 0.95:
                 instruction.linear.x = 0
+                # Person is directly in front and the right distance from the bot
+                # --> stop moving linearly or angularly
                 if min(frontCenterLeft, backCenterLeft, backLeft,
                 frontCenterRight, backCenterRight, backRight) == inf:
-                    print("finished")
                     instruction.angular.z = 0
-            # Right behind person, just back up without turning
-            elif front <= stop_point: # and (min(frontCenterLeft, backCenterLeft, backLeft,
-            #backRight, backCenterRight, frontCenterRight) == inf):
-                print("only backup")
-                #instruction.angular.z = 0
+            # Right the behind person, just back up without turning
+            elif front <= stop_point:
                 instruction.linear.x = error_rate * prop_control
+            # Still quite far from person, can move quickly
             elif front > decel_point:
                 instruction.linear.x = 1
+            # Pretty close to person, move slowly
             else:
-                instruction.linear.x = 0.4
+                instruction.linear.x = 0.2
 
-        if instruction.angular.z > 0:
-            print("turning left" + str(instruction.angular.z))
-        elif instruction.angular.z < 0:
-            print("turning right" + str(instruction.angular.z))
-        if instruction.linear.x > 0:
-            print("forward" + str(instruction.linear.x))
-        elif instruction.linear.x < 0:
-            print("back: " + str(instruction.linear.x))
-
-        print(frontLeft, front, frontRight)
         self.navigator.publish(instruction)
 
     def run(self):
